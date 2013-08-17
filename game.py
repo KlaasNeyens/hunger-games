@@ -49,7 +49,9 @@ class Debugger:
 
 	def print_player(self, player, game_round):
 		if self.enabled and game_round % self.round_interval == 0:
-			print player, 'hunts =', player.hunts, 'slacks =', player.slacks, 'rep =', player.reputation, 'food =', player.food
+			print '{0} hunts = {1} slacks = {2} rep = {3} food = {4}'.format(
+				player, player.hunts, player.slacks, player.reputation, 
+				player.food)
 
 	def print_player_out(self, player, game_round):
 		if self.enabled and self.player_out:
@@ -113,6 +115,7 @@ def remove_hungry_players(players, game_round):
 			removed.append(player)
 	for player in removed:
 		players.remove(player)
+		player.exit_round = game_round
 		debugger.print_player_out(player, game_round)
 	return removed
 
@@ -124,7 +127,7 @@ def run_game():
 	players = [Player(start_food, AI) for AI in players_AI]
 	
 	losers = []
-	for game_round in range(1, 10000):
+	for game_round in range(1, max_game_rounds):
 		debugger.print_start_round(game_round)
 
 		num_players = len(players)
@@ -177,12 +180,22 @@ def run_game():
 	
 	if players:
 		print '\nWinners'
-		for player in players:
-			print player, 'hunts =', player.hunts, 'slacks =', player.slacks, 'rep =', player.reputation, 'food =', player.food
+		for player in sorted(players, key=lambda player: player.food, reverse=True):
+			print '{0} hunts = {1} slacks = {2} rep = {3} food = {4}'.format(
+				player, player.hunts, player.slacks, player.reputation, 
+				player.food)
 	print '\nLosers'
 	for i in range(len(losers)):
 		player = losers[len(losers) - i - 1]
-		print player, 'hunts =', player.hunts, 'slacks =', player.slacks, 'rep =', player.reputation, 'food =', player.food
+		print '{0} hunts = {1} slacks = {2} rep = {3} exit = {4}'.format(
+			player, player.hunts, player.slacks, player.reputation, 
+			player.exit_round)
 
-debugger = Debugger(enabled=True, round_interval=100, decisions=False, player_out=True)
+max_game_rounds = 10000
+debugger = Debugger(
+	enabled=True,
+	round_interval=100,
+	decisions=False,
+	player_out=True
+)
 run_game()
